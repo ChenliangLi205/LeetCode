@@ -1,68 +1,40 @@
 import time
-# TIME LIMIT EXCEEDED
-# TO BE MODIFIED
-S = "acdcb"
-P = "a*c?b"
-S1 = "cdb"
-P1 = "c?b"
-S2 = "aa"
-P2 = "a"
-S3 = "ho"
-P3 = "ho**"
-S4 = "aa"
-P4 = "*"
-S5 = "aab"
-P5 = "c*a*b"
-S6 = "ba"
-P6 = "*a*"
-S7 = "babbbbaabababaabbababaababaabbaabababbaaababbababaaaaaabbabaaaabababbabbababbbaaaababbbabbbbbbbbbbaabbb"
-P7 = "b**bb**a**bba*b**a*bbb**aba***babbb*aa****aabb*bbb***a"
+
+T1 = ("adceb", "*a*b")
+T2 = ("acdcb", "a*c?b")
+T3 = ("aab", "c*a*b")
 
 
 def solution(s, p):
-    def matches(arr_s, arr_p):
-        if len(arr_s) == 0:
-            if len(arr_p) == 0 or arr_p == "*":
-                return True
-            else:
-                return False
-        elif len(arr_p) == 0:
+    lenS, lenP = len(s), len(p)
+    if lenS == lenP == 0:
+        return True
+    state, fsm = 0, dict()
+    for char in s:
+        fsm[(state, char)] = state + 1
+        state += 1
+    target = state
+    stateSet = set()
+    stateSet.add(0)
+    for char in p:
+        if len(stateSet) == 0:
             return False
-        match = True
-        for i in range(len(arr_p)):
-            if arr_p[i] == '*':
-                if i == len(arr_p)-1:
-                    match = True
-                    break
-                p_unmatched = arr_p[i+1:]
-                sub_match = False
-                for k in range(len(arr_s)-1, i-1, -1):
-                    if matches(arr_s[k:], p_unmatched):
-                        sub_match = True
-                        break
-                if sub_match:
-                    match = True
-                    break
-                else:
-                    match = False
-                    break
-            elif i > len(arr_s)-1:
-                match = False
-                break
-            elif i == len(arr_p)-1 and i < len(arr_s)-1:
-                match = False
-                break
-            elif arr_p[i] != '?' and arr_p[i] != arr_s[i]:
-                match = False
-                break
-        return match
-    if len(p) > 1:
-        to_keep = [i for i in range(len(p)) if i==0 or p[i]!='*' or p[i-1]!='*']
-        p = ''.join([p[i] for i in to_keep])
-    return matches(s, p)
+        if char == "?":
+            stateSet = {x + 1 for x in stateSet}
+        elif char == "*":
+            min_ = min(stateSet)
+            stateSet = {x for x in range(min_, target + 1)}
+        else:
+            newStates = set()
+            for x in stateSet:
+                if (x, char) in fsm:
+                    newStates.add(x+1)
+            stateSet = newStates
+    return target in stateSet
 
 
 if __name__ == '__main__':
     t1 = time.time()
-    print(solution(S7, P7))
+    head = solution(*T3)
+    print(head)
     print(time.time()-t1)
